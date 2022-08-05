@@ -8,3 +8,7 @@ export const authSignUpSchema = joi.object({
 })    
 .with('password', 'confirmPassword');
 
+export const authLoginSchema = joi.object({
+    email: joi.string().email().required(),
+    password: joi.string().required()
+});
