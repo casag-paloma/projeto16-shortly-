@@ -47,4 +47,23 @@ export async function getUrl(req, res){
         console.log(error);
         res.sendStatus(500);
     }
+};
+
+export async function openShortUrl(req, res){
+    const {shortUrl} = req.params;
+
+    try {
+ 
+        const {rows: url, rowCount } = await connection.query(`SELECT url, "visitCount" FROM urls WHERE "shortUrl" = $1;`, [shortUrl]);
+
+        if(rowCount === 0) return res.sendStatus(404)
+
+        const newVisitCount = parseInt(url[0].visitCount) + 1;
+        await connection.query(`UPDATE urls SET "visitCount" = $1 WHERE "shortUrl" = $2;`, [newVisitCount, shortUrl]);
+        console.log(url, newVisitCount, shortUrl, url[0].url);
+        res.redirect(url[0].url);
+    } catch (error) {
+        console.log(error);
+        res.sendStatus(500);
+    }
 }
