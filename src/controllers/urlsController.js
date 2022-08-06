@@ -1,5 +1,6 @@
 import connection from "../dbStrategy/pgsql.js";
 import { nanoid } from "nanoid";
+import { urlSchema } from "../schemas/urlSchema.js";
 
 export async function shortenUrl(req, res){
     const {user} = res.locals;
@@ -7,6 +8,14 @@ export async function shortenUrl(req, res){
     console.log(userId);
     try {
         const {url} = req.body;
+
+        const validate = urlSchema.validate(url, { abortEarly: false });
+
+        if(validate.error){
+            const messages = validate.error.details.map(e => e.message);
+            return res.status(422).send(messages);
+        };
+
         const shortUrl = nanoid();
         console.log(url, shortUrl);
 
