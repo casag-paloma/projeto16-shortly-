@@ -7,22 +7,30 @@ export async function getUserMe(req, res){
 
     try {
 
-        const result = await connection.query(
-            {
-              text: `
-              SELECT 
-                urls.*,
-                users.*
-              FROM urls
-                JOIN users ON users.id=urls."userId"
-                WHERE user.id = $1;
-            `,
-              rowMode: 'array'
-            },
-            [userId]
-          );
-      
-          res.send(result.rows.map(_mapRentalsArrayToObject));
+        const {rows: urls} = await connection.query(`SELECT json_build_object(
+            'id', us.id,
+            'name', us."fullName",
+            'visitCount', us."urlsVisitCount",
+            'shortenedUrls', json_build_object(
+                    'id', ur.id,
+                    'shortUrl', ur."shortUrl",
+                    'url', ur.url,
+                    'visitCount', ur."visitCount")
+            )FROM urls ur JOIN users us ON ur."userId" = us.id WHERE ur."userId" = $1;`, [userId]
+    );
+        console.log(urls);
+        const urlsArray = urls.map(e => e = e.json_build_object);
+        const shortenedUrls = urlsArray.map(e => e.shortenedUrls);
+        console.log(shortenedUrls);
+        const result = {
+            id: urlsArray[0].id,
+            name: urlsArray[0].name,
+            visitCount: urlsArray[0].visitCount,
+            shortenedUrls: shortenedUrls
+        }
+        console.log(result);
+
+        res.status(200).send(result);
 
     } catch (error) {
         console.log(error);

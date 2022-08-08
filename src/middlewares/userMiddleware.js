@@ -15,7 +15,7 @@ export async function userMiddleware(req, res, next){
 
         const {rows: user} = await connection.query(`SELECT id, "fullName", email FROM users WHERE id = $1;`, [userId]);
 
-        if(!user) return res.sendStatus(401)
+        if(!user) return res.sendStatus(404)
 
         res.locals.user = user;
         next();
