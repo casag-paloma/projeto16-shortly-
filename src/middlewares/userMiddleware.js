@@ -19,6 +19,7 @@ export async function userMiddleware(req, res, next){
 
         res.locals.user = user;
         next();
+        
     } catch (error) {
         console.log(error);
         return res.sendStatus(500);
