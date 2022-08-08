@@ -13,7 +13,7 @@ export async function userMiddleware(req, res, next){
 
         const userId = rows[0].userId;
 
-        const {rows: user} = await connection.query(`SELECT id, "fullName", email FROM users WHERE id = $1;`, [userId]);
+        const {rows: user} = await connection.query(`SELECT id, "fullName", email, "urlsVisitCount" FROM users WHERE id = $1;`, [userId]);
 
         if(!user) return res.sendStatus(404)
 

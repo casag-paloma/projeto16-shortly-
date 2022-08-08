@@ -5,10 +5,8 @@ import { urlSchema } from "../schemas/urlSchema.js";
 export async function shortenUrl(req, res){
     const {user} = res.locals;
     const userId = user[0].id;
-    console.log(userId);
     try {
         const url = req.body;
-        console.log(url);
 
         const validate = urlSchema.validate(url, { abortEarly: false });
 
@@ -18,11 +16,9 @@ export async function shortenUrl(req, res){
         };
 
         const shortUrl = nanoid();
-        console.log(url.url, shortUrl);
 
         await connection.query(`INSERT INTO urls (url, "shortUrl", "userId") VALUES ( $1, $2, $3);`, [url.url, shortUrl,userId]);
         const resUrl = await connection.query(`SELECT "shortUrl" FROM urls WHERE "shortUrl" = $1;`, [shortUrl]);
-        console.log(resUrl.rows[0]);
         res.status(201).send(resUrl.rows[0]);
 
 
@@ -66,7 +62,6 @@ export async function openShortUrl(req, res){
 
         await connection.query(`UPDATE urls SET "visitCount" = $1 WHERE "shortUrl" = $2;`, [newVisitCount, shortUrl]);
         await connection.query(`UPDATE users SET "urlsVisitCount" = $1 WHERE id = $2;`, [newUrlVisitCount, url[0].userId]);
-        console.log()
         res.redirect(url[0].url);
     } catch (error) {
         console.log(error);
@@ -77,7 +72,6 @@ export async function openShortUrl(req, res){
 export async function deleteUrl(req, res){
     const {user} = res.locals;
     const userId = user[0].id;
-    console.log(userId);
     const {id} = req.params;
     if(isNaN(parseInt(id))) return res.sendStatus(400)
 
@@ -87,11 +81,13 @@ export async function deleteUrl(req, res){
         if(rowCount === 0) return res.sendStatus(404)
         const urlUserId = url[0].userId;
 
-        console.log(userId, urlUserId, id)
-
         if(userId != urlUserId) return res.sendStatus(401)
 
+        const userVisitCount = parseInt(user[0].urlsVisitCount);
+        const urlVisitCount = parseInt(url[0].visitCount);
+        const newUserVisitCount = userVisitCount - urlVisitCount;
         await connection.query(` DELETE FROM urls WHERE urls.id = $1;`,[id]);
+        await connection.query(`UPDATE users SET "urlsVisitCount" = $1 WHERE id = $2;`, [newUserVisitCount, userId]);
         res.sendStatus(204);
     } catch (error) {
         console.log(error);

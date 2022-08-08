@@ -18,18 +18,14 @@ export async function getUserMe(req, res){
                     'visitCount', ur."visitCount")
             )FROM urls ur JOIN users us ON ur."userId" = us.id WHERE ur."userId" = $1;`, [userId]
     );
-        console.log(urls);
         const urlsArray = urls.map(e => e = e.json_build_object);
         const shortenedUrls = urlsArray.map(e => e.shortenedUrls);
-        console.log(shortenedUrls);
         const result = {
             id: urlsArray[0].id,
             name: urlsArray[0].name,
             visitCount: urlsArray[0].visitCount,
             shortenedUrls: shortenedUrls
         }
-        console.log(result);
-
         res.status(200).send(result);
 
     } catch (error) {
